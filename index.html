@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IT5100F Group 11 — E-Commerce Orders Analysis</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 800px; margin: 60px auto; padding: 0 20px; }
+    h1 { font-size: 1.6em; }
+    h2 { font-size: 1.2em; margin-top: 40px; border-bottom: 1px solid #ddd; padding-bottom: 6px; }
+    h3 { font-size: 1em; margin-top: 24px; }
+    p, li { color: #333; line-height: 1.6; }
+    ul.links { list-style: none; padding: 0; }
+    ul.links li { margin: 16px 0; }
+    a.btn { display: inline-block; padding: 12px 20px; background: #0066cc; color: white; border-radius: 6px; text-decoration: none; font-size: 1em; }
+    a.btn:hover { background: #0052a3; }
+    .section { margin-top: 48px; }
+    strong { color: #111; }
+  </style>
+</head>
+<body>
+  <h1>IT5100F Group 11 — E-Commerce Orders Analysis</h1>
+  <p>AY2025/26 Project Submission</p>
+
+  <ul class="links">
+    <li><a class="btn" href="IT5100F_Assignment_1.html">Assignment 1 — Data Cleaning &amp; Preprocessing</a></li>
+    <li><a class="btn" href="IT5100F_A2_11.html">Assignment 2 — Supervised Learning</a></li>
+    <li><a class="btn" href="IT5100F_A3_11.html">Assignment 3 — Unsupervised Learning &amp; Report</a></li>
+  </ul>
+
+  <div class="section">
+    <h2>Assignment 1 — Data Cleaning &amp; Preprocessing</h2>
+
+    <h3>Load data</h3>
+    <p>The cleaned dataset from Assignment 1 (46,287 orders, 17 columns) is loaded. It contains order-level features including pricing, item counts, product category, payment type, and the engineered features order_value_per_item and order_size_category.</p>
+
+    <h3>Inner joins</h3>
+    <p>An inner join as a common denominator/identifier ensures only orders with complete records across all four tables are retained, avoiding incomplete rows.</p>
+
+    <h3>Handle missing values</h3>
+    <p>Median imputation is used for avg_item_price as it is robust to outliers. Mode imputation is used for categorical columns (top_product_category, payment_type) since the most frequent value is the best single-point estimate.<br>
+    Note: top_product_category had 11.56% missing — this level of imputation may inflate bed_bath_table's frequency downstream.</p>
+
+    <h3>Invalid records</h3>
+    <p>Records with zero or negative num_items or order_total_value are logically impossible for a valid transaction and are removed to ensure data quality.</p>
+
+    <h3>Sanity Check</h3>
+    <p>These checks enforce 2 rules: an order cannot have more unique products than items, and the total order value must cover item price plus freight. Rows failing these checks likely reflect data entry errors.</p>
+
+    <h3>Bar chart observations</h3>
+    <ol>
+      <li>The top 5 product categories (bed_bath_table, health_beauty, furniture_decor, computers_accessories, telephony) dominate about 43.3% of all the orders, while the remaining 66 categories split the leftover 56.7%.</li>
+      <li>Most other categories have significantly fewer orders, indicating that customer demand is concentrated in a few popular product types rather than evenly spread across all categories.</li>
+      <li>Notably, bed_bath_table alone represents 13.9% of orders (6,419), which may be partially inflated since 11.56% of originally missing category values were imputed with this mode during data cleaning.</li>
+    </ol>
+
+    <h3>Box plot observations</h3>
+    <ol>
+      <li>Order total value generally increases as the number of items increases, indicating a positive relationship between order size and total spending.</li>
+      <li>However, the presence of many outliers and increasing spread for higher item counts suggests substantial variability in prices, meaning larger orders do not always translate to proportionally higher total values.</li>
+      <li>Outliers appear across all item counts but are most prominent in single-item orders, suggesting high-value individual products can match or exceed multi-item order totals.</li>
+    </ol>
+  </div>
+
+  <div class="section">
+    <h2>Assignment 2 — Supervised Learning</h2>
+
+    <h3>Test dataset</h3>
+    <p>Using a test dataset is crucial for evaluating the true performance of a machine learning model. It provides an unbiased assessment of how well the model generalizes to new, unseen data. Without a separate test set, a model's performance might be overestimated, as it could have simply memorized the training data (overfitting). By holding out a portion of the data for testing, we can gauge the model's ability to predict outcomes on data it has not encountered during training, ensuring its reliability for real-world applications.</p>
+
+    <h3>Categorical encoding</h3>
+    <p>Categorical encoding is needed because most machine learning models only understand numbers and cannot directly interpret text labels. Encoding converts text categories into numerical representations, such as integers (Label Encoding) or binary vectors (One-Hot Encoding), so models can process them. This allows models to learn patterns and relationships within the data, leading to effective predictions.</p>
+
+    <h3>Feature scaling</h3>
+    <p>Feature scaling is important because it prevents features with larger numerical values from disproportionately influencing model training. By bringing all features to a similar scale, it ensures that every feature contributes equally to the learning process, leading to more stable and effective model performance.</p>
+
+    <h3>Model strengths and weaknesses</h3>
+    <p><strong>Logistic Regression</strong> — Strengths: Simple, interpretable, computationally efficient, good baseline, performs well when class boundaries are approximately linear and features are well-scaled. Provides probability scores. Weaknesses: Assumes linearity, may not capture complex relationships, sensitive to outliers and multicollinearity.</p>
+    <p><strong>Decision Tree</strong> — Strengths: Easy to understand and interpret (especially small trees), handles non-linear relationships, requires little data preprocessing. Weaknesses: Prone to overfitting, sensitive to small variations in data, can create biased trees if classes are imbalanced.</p>
+    <p><strong>Random Forest</strong> — Strengths: Reduces overfitting compared to single decision trees, handles non-linear data well, provides good feature importance, generally high accuracy. Weaknesses: Less interpretable, can be computationally intensive for very large datasets.</p>
+    <p>Impact of Class Imbalance Handling: If class imbalance is not handled, models might be biased towards the majority class, leading to high accuracy but poor performance on the minority class. Metrics like precision, recall, and F1-score (especially 'weighted' averages) are more informative than accuracy in the presence of class imbalance.</p>
+
+    <h3>Model selection — Random Forest</h3>
+    <p>The Random Forest model achieved the highest Accuracy (0.626), highest Precision (0.577), highest Recall (0.626), and highest F1-Score (0.584) among the three models. Although explicit class imbalance handling techniques were not applied, the Random Forest model's ensemble nature inherently helps by training diverse trees on bootstrapped samples. Random Forest models are generally robust, handle various data types well, and are less prone to overfitting than single decision trees.</p>
+
+    <h3>Model interpretability</h3>
+    <p>Logistic Regression is highly predictable and is also considered a white box model. Each feature gets a weight (coefficient) that directly shows how much and in what direction it influences the prediction.</p>
+    <p>Decision Trees are interpretable based on the depth of the tree. The decision rules from root to leaf node help understand how a prediction is made. However, as trees grow deeper, interpretability decreases.</p>
+    <p>Random Forest is an ensemble of many Decision Trees. Combining hundreds of trees makes the overall model a 'black-box'. We can extract feature importances, which tell us which features were most influential on average across all trees.</p>
+
+    <h3>Conclusion</h3>
+    <p>This assignment applied supervised learning to predict payment_type. Data Preparation focused on splitting data, categorical encoding, and numerical scaling to prepare features for modeling. The Random Forest model consistently outperformed others across all metrics, particularly the F1-Score, demonstrating its superior predictive power for this task. Random Forest was chosen for its performance and robustness, despite being less interpretable than Logistic Regression or Decision Trees.</p>
+  </div>
+
+  <div class="section">
+    <h2>Assignment 3 — Unsupervised Learning</h2>
+
+    <h3>Load data</h3>
+    <p>The cleaned and processed dataset from Assignment 1 (46,287 orders, 17 columns) is loaded with engineered features (order_value_per_item, order_size_category).</p>
+
+    <h3>Further feature engineering</h3>
+    <p>These four features capture an order's monetary value, volume, shipping cost proportion, and product variety. Division-by-zero is handled explicitly before computing ratios.</p>
+
+    <h3>Stratified sampling for Elbow method testing</h3>
+    <p>orders_analysis_df (30% of all orders) provides a representative random sample to run the Elbow Method (k=3 to 9) without repeatedly fitting K-Means on all 46,287 orders. The full all_orders_df is then used in Task 3 to assign every order a final cluster.</p>
+
+    <h3>StandardScaler for K-Means to reduce bias</h3>
+    <p>StandardScaler is applied before K-Means because the algorithm is distance-based. Without scaling, basket_size (hundreds of dollars) would dominate freight_ratio (0–1 range), producing biased clusters.</p>
+
+    <h3>Optimal K</h3>
+    <p>The elbow plot shows a clear inflection point at k=5, where the rate of inertia decrease slows significantly, suggesting diminishing returns from adding more clusters beyond this point.</p>
+
+    <h3>Post K-Means refit</h3>
+    <p>Now that everything is on a standard scale, K-Means is re-fitted on all 46,287 orders to assign a cluster label to every order.</p>
+
+    <h3>Cluster analysis</h3>
+    <ol>
+      <li>The clusters are well-separated because they each have at least 1 Z-score that is far from 0, representing a defining feature for each cluster:
+        <ul>
+          <li>Cluster 1: product_diversity</li>
+          <li>Cluster 0 &amp; 2: basket_qty</li>
+          <li>Cluster 3: freight_ratio</li>
+          <li>Cluster 4: basket_size</li>
+        </ul>
+      </li>
+      <li>basket_size, basket_qty, and freight_ratio reflecting the nature of how consumers shop (single cheap items vs. bulk purchases vs. high-value orders).</li>
+      <li>The heavily skewed cluster sizes (Cluster 0 at 54%) suggest the business should focus mass marketing on everyday buyers, bundle deals for repeat low-variety buyers (Cluster 1), bulk discounts for Cluster 2, shipping incentives for Cluster 3, and premium loyalty programmes for high-value customers (Cluster 4).</li>
+    </ol>
+
+    <h3>Basket/grouping items together</h3>
+    <p>Each order is encoded as a 3-item basket combining product category, payment type, and order size, allowing Apriori to discover associations across these three business-relevant dimensions simultaneously. Apriori is a classic algorithm in data mining used to find frequent itemsets and generate association rules.</p>
+
+    <h3>Discovering patterns</h3>
+    <p>min_support=0.01 filters patterns appearing in fewer than 1% of orders (~463), removing rare noise. lift ≥ 1.0 retains only rules where items appear together more than random chance.</p>
+
+    <h3>Top 3 association rules</h3>
+    <ol>
+      <li><strong>furniture_decor:</strong> Furniture_decor orders are strongly associated with large order sizes; furniture generally big and bulky, costs more.</li>
+      <li><strong>bed_bath_table:</strong> Bed_bath_table customers paying by credit card tend to be medium-sized orders.</li>
+      <li><strong>size_Medium:</strong> Medium orders are associated with credit card payments generally from bed_bath_table.</li>
+    </ol>
+    <p>Highest lift: furniture_decor &amp; size_Large at lift=5.33, suggesting 5x more likely over random chance.</p>
+    <p>Why these associations might exist: Furniture generally costs more to make and purchase, thus high-value product. People tend to buy in sets as well (e.g. buying a bedframe + mattress), pushing up the order size and value.</p>
+
+    <h3>min_support comparison</h3>
+    <table border="1" cellpadding="8" cellspacing="0" style="border-collapse:collapse;">
+      <tr><th>min_support</th><th>rules</th></tr>
+      <tr><td>0.005</td><td>280</td></tr>
+      <tr><td>0.01</td><td>138</td></tr>
+      <tr><td>0.3</td><td>2</td></tr>
+    </table>
+    <p>min_support means showing the patterns that appear at that percentage level. The higher the threshold, the stricter it is. Only 2 rules survived the 30% threshold, as most patterns are too rare to appear in nearly a third of all orders.</p>
+
+    <h3>Business recommendations</h3>
+    <ul>
+      <li>Promote furniture bundles for large orders since furniture_decor and size_Large are strongly associated (lift=5.33). The business should offer bundle deals or free delivery for large furniture orders to encourage higher order values.</li>
+      <li>Target bed_bath_table buyers with credit card promotions: Purchases are strongly linked to credit card payments (lift=2.02), partnering with banks to offer cashback can drive more sales.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2>Connecting to Business Objectives</h2>
+
+    <h3>Assignment 1 — Data quality for reliable decisions</h3>
+    <p>Clean, reliable data is the foundation. By removing invalid records and imputing missing values, the 46,287-order dataset is trustworthy enough to drive business decisions. The bar chart reveals demand is concentrated in a few categories (top 5 = 43.3% of orders), guiding where to focus inventory and marketing. The positive relationship between order size and value supports tiered pricing and bundle strategies.</p>
+
+    <h3>Assignment 2 — Predicting payment behaviour</h3>
+    <p>Predicting payment_type with Random Forest (F1=0.584) enables the business to anticipate how customers will pay before checkout. This supports payment-specific promotions (e.g., credit card cashback, voucher campaigns) and helps optimise payment gateway infrastructure by prioritising the most likely payment methods per customer segment.</p>
+
+    <h3>Assignment 3 — Segmenting customers and uncovering purchasing patterns</h3>
+    <p>Clustering reveals 5 distinct order profiles — everyday buyers (Cluster 0, 54%), high-variety buyers (Cluster 1), bulk buyers (Cluster 2), freight-sensitive buyers (Cluster 3), and high-value buyers (Cluster 4) — each requiring a different marketing approach. Association rules further show that furniture_decor strongly co-occurs with large order sizes (lift=5.33) and bed_bath_table purchases are linked to credit card payments (lift=2.02), enabling targeted bundle promotions and bank partnership deals.</p>
+
+    <h3>Overall</h3>
+    <p>Together, the three assignments form a pipeline: clean data (A1) → predict individual behaviour (A2) → discover group patterns (A3) — giving the business the tools to personalise marketing, optimise logistics, and increase revenue.</p>
+  </div>
+
+</body>
+</html>
